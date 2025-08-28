@@ -1,0 +1,45 @@
+# Use Ubuntu as the base image
+# FROM ubuntu:20.04
+FROM --platform=linux/amd64 python:3.11
+
+# update and install nginx
+RUN	apt-get update
+RUN	apt-get install -y --no-install-recommends nginx
+
+# set the working directory
+WORKDIR /regression_test_suite
+
+# copy everything to container
+COPY ./ .
+
+# install dependent packages
+RUN pip3 install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+RUN pip3 install -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org
+RUN pip3 install ./dependencies/ascendops_commonlib-0.4.4.tar.gz --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+# expose the port the app runs on
+EXPOSE 9000
+
+# infra config
+ENV PYTHONPATH=.:/
+ENV RUNTIME_ENV=uat
+ENV DEFAULT_REGION=us-east-1
+ENV APP_DIR=/regression_test_suite
+ENV SECRETS_ENV=uat
+ENV SECURITY_PROTOCOL=SSL
+
+# app config
+ENV AO_SERVICE_URL=https://uat-api-ops.acloud.experian.corp
+ENV EXCEL_BUCKET_NAME=expn-ascend-ops-rts-testdata-bucket3
+ENV ES_TESTCASES_DB_NAME=expn-ascend-ops-rts-testcases
+ENV ES_CONSUMERS_DB_NAME=expn-ascend-ops-rts-consumers
+ENV ES_HISTORY_DB_NAME=expn-ascend-ops-rts-history
+ENV JOB_QUEUE_SIZE=300
+
+# es config
+ENV DEFAULT_ES_HOST=vpc-uat-ascend-go-wdae7basbpxdvkgtpnicgu53jm.us-east-1.es.amazonaws.com
+ENV DEFAULT_ES_PORT=443
+ENV DEFAULT_ES_ROLE=arn:aws:iam::262403030294:role/uat-es-role
+
+# start the app
+CMD ["python","regression_test_server.py"]

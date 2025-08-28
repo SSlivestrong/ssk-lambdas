@@ -1,0 +1,100 @@
+
+# Use Ubuntu as the base image
+# FROM ubuntu:20.04
+FROM --platform=linux/amd64 python:3.11
+
+# FROM --platform=linux/amd64 python:3.11
+
+# Ensures that you have the latest information about available software packages, 
+# which helps avoid issues when installing new packages.
+RUN apt-get update -y 
+
+# Install JDK 11 (Needed for crypto-util)
+# RUN apt-get -y install openjdk-11-jre-headless
+# Install JDK 17 (Needed for crypto-util)
+RUN apt-get -y install openjdk-17-jre-headless
+
+# Set the working directory
+WORKDIR /billing_consumer_new
+
+# Copy the common-lib package
+COPY ./billing_consumer_new/ascendops_commonlib-0.4.8.tar.gz ascendops_commonlib-0.4.8.tar.gz
+
+# Install the ascendops_commonlib package
+RUN pip install ascendops_commonlib-0.4.8.tar.gz --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+# Copy the requirements file into the container
+COPY ./billing_consumer_new/requirements.txt requirements.txt 
+
+# Install the libraries in requirements.txt
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+
+# Copy all the folders
+COPY ./billing_consumer_new/billing_service/*.py ./billing_service/
+COPY ./billing_consumer_new/helpers/*.py ./helpers/
+COPY ./billing_consumer_new/start_up/*.py ./start_up/
+COPY ./billing_consumer_new/main.py ./
+COPY ./billing_consumer_new/certs/ ./certs/
+
+# List the folders in the container
+RUN ls -R /billing_consumer_new
+
+# Certs Config
+ENV CACERT_S3_PATH=certs/cacerts.pem
+ENV PUBLIC_CERT_S3_PATH=certs/uat-public-cert.pem
+ENV PRIVATE_KEY_S3_PATH=certs/uat-private-key.pem
+
+# Kakfa Config
+ENV KAFKA_NO_CONSUMER_PER_INSTANCE=4
+ENV MSK_BOOTSTRAP_SERVERS=b-1.uat-go-msk.fh6081.c3.kafka.us-east-1.amazonaws.com:9094
+ENV CACERT_FILE_NAME=cacerts.pem
+ENV PUBLIC_CERT_FILE_NAME=uat-public-cert.pem
+ENV PRIVATE_KEY_FILE_NAME=uat-private-key.pem
+ENV MSK_SECRET_NAME=uat-batch-transformation-msk
+ENV MSK_CERT_BUCKET_NAME=uat-experian-us-east-1-262403030294
+ENV SECURITY_PROTOCOL=SSL
+
+RUN ls -lrth
+
+# General Config
+ENV PYTHONPATH=.:/
+ENV APP_DIR=/billing_consumer_new
+ENV LOG_LEVEL=10
+ENV DEFAULT_REGION=us-east-1
+ENV AWS_ACCOUNT=262403030294
+
+# Billing Config
+ENV BILLING_TOPIC=refactored_billing
+
+# RDS Config (Add the below after finding out the test database details)
+# ENV ANALYTICS_RDS_KEY_NAME=uat-analytics-ops-rw
+# ENV ANALYTICS_RDS_DATABASE_HOST=host
+# ENV ANALYTICS_RDS_DATABASE_PORT=port
+# ENV ANALYTICS_RDS_DATABASE_USERNAME=username
+# ENV ANALYTICS_RDS_DATABASE_PASSWORD=password
+# ENV ANALYTICS_RDS_DATABASE_SCHEMA=uat_analytics
+# ENV ALLOUT_BILLING_TABLE_NAME=uat_bc_billing
+# ENV PRODUCT_CODES_BILLING_TABLE_NAME=uat_bc_product_codes_info
+
+# Crypto Config
+ENV CRYPTO_ENV=uat
+ENV CRYPTO_ENV_PREFIX=alw
+ENV CRYPTO_AWS_PROFILE=
+ENV CRYPTO_INSTANCES=3
+ENV CRYPTO_LJAR=/billing_consumer_new/crypto/crypto-light.jar
+
+RUN mkdir /billing_consumer_new/crypto
+ENV API_KEY=AKCp8ihVhkTWbk9QgWwmPpSS3dEDFC85rq8FepaTMXYb3Z9cERqUqV5bAoGNc9LG6kEueBj4V
+ENV USR_DIR=/billing_consumer_new/crypto
+ENV CRYPTO_LIGHT_JAR_URL=https://artifacts.experian.local/artifactory/ascend-ops/crypto-light/crypto-light-1.0.2-RELEASE.jar
+
+RUN curl -k -H "X-JFrog-Art-Api:$API_KEY" -o $USR_DIR/crypto-light.jar "$CRYPTO_LIGHT_JAR_URL"
+
+ENV BILLING_CONSUMER_PORT=6500
+
+EXPOSE 6500
+
+CMD ["python3", "main.py"]
+
+
+

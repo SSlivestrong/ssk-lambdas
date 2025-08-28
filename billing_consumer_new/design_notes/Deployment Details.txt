@@ -1,0 +1,8 @@
+
+
+ECR Repo URI:
+    - 262403030294.dkr.ecr.us-east-1.amazonaws.com/uat-rds-billing
+ECS:
+    - Name: "uat-rds-billing"
+    - No. of tasks: 3
+    - 8 vCPU and 16 GB

@@ -1,0 +1,39 @@
+{
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "dynamic": "strict",
+        "properties": {
+            "testcase_id": {
+                "type": "keyword"
+            },
+            "ao_request": {
+                "type": "text",
+                "index": false
+            },
+            "ao_response": {
+                "type": "text",
+                "index": false
+            },
+            "services": {
+                "type": "text",
+                "index": false
+            },
+            "solution_id": {
+                "type": "keyword"
+            },
+            "case_code": {
+                "type": "keyword"
+            },
+            "status": {
+                "type": "keyword"
+            },
+            "trade_date": {
+                "type": "date",
+                "format": "date_optional_time"
+            }
+        }
+    }
+}

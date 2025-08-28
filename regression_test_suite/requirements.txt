@@ -1,0 +1,9 @@
+boto3
+aiohttp
+aiokafka
+fastapi
+uvicorn
+pydantic
+pandas
+openpyxl
+numpy==1.26.4

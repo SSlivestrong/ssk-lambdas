@@ -1,0 +1,55 @@
+ARG PYTHON_VERSION
+FROM 262403030294.dkr.ecr.us-east-1.amazonaws.com/prod-base-images:unicorn-latest-${PYTHON_VERSION}
+RUN apt-get update -y
+
+WORKDIR /app
+
+COPY super_store_app/requirements.txt requirements.txt
+RUN apt install -y gpg
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+
+COPY super_store_app/code/api/*.py /app/api/
+COPY super_store_app/code/batch_consumer/*.py /app/batch_consumer/
+COPY super_store_app/code/*.py /app
+COPY super_store_app/common/ /app/common/
+COPY super_store_app/certs/*.pem /app/certs/
+
+
+RUN ls -lrth
+RUN mkdir /app/temp/
+
+
+ENV APP_DIR=/app
+ENV APP_TEMP_DIR=/app/temp
+ENV LOG_LEVEL=20
+ENV EXEC_STAGE=uat
+ENV DEFAULT_REGION=us-east-1
+ENV AWS_ACCOUNT=262403030294
+ENV INTERNAL_CLIENT_ALIAS=experian
+
+ENV RECORD_COUNT=100
+ENV KAFKA_NO_CONSUMER_PER_INSTANCE=4
+ENV MSK_BOOTSTRAP_SERVERS=b-1.uat-go-msk.fh6081.c3.kafka.us-east-1.amazonaws.com:9094
+ENV CACERT_FILE_NAME=cacerts.pem
+ENV PUBLIC_CERT_FILE_NAME=uat-public-cert.pem
+ENV PRIVATE_KEY_FILE_NAME=uat-private-key.pem
+ENV MSK_SECRET_NAME=uat-batch-transformation-msk
+ENV MSK_CERT_BUCKET_NAME=uat-experian-us-east-1-262403030294
+ENV SECURITY_PROTOCOL=SSL
+ENV KAFKA_GROUP_ID=superstore
+
+ENV CACERT_S3_PATH=certs/cacerts.pem
+ENV PUBLIC_CERT_S3_PATH=certs/uat-public-cert.pem
+ENV PRIVATE_KEY_S3_PATH=certs/uat-private-key.pem
+
+ENV SUPER_STORE_TOPIC=reporting
+ENV SUPER_STORE_S3_PATH=uat-ascend-ops-platform-us-east-1-262403030294/reporting
+ENV SNAPSHOT_ENCRYPTION_KEY=arn:aws:kms:us-east-1:262403030294:alias/uat-ascend-ops-platform-cmk
+ENV SUPER_STORE_PGP_SECRET_VAULT=uat-reporting-secrets
+ENV SUPER_STORE_PGP_SECRET=reporting-public-key
+
+ENV SUPER_STORE_CONSUMER_PORT=7000
+
+EXPOSE ${SUPER_STORE_CONSUMER_PORT}
+
+CMD ["python3", "/app/app.py"]

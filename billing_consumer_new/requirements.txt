@@ -1,0 +1,10 @@
+kafka-python==2.0.2
+requests-aws4auth==1.0.1
+aiohttp
+aioboto3>=11.3.0
+aiokafka==0.7.2
+JPype1==1.4.1
+pgpy==0.6.0
+aiomysql==0.1.1
+pydantic
+boto3
