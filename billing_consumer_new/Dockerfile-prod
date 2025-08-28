@@ -84,11 +84,11 @@ ENV CRYPTO_INSTANCES=3
 ENV CRYPTO_LJAR=/billing_consumer_new/crypto/crypto-light.jar
 
 RUN mkdir /billing_consumer_new/crypto
-ENV API_KEY=AKCp8ihVhkTWbk9QgWwmPpSS3dEDFC85rq8FepaTMXYb3Z9cERqUqV5bAoGNc9LG6kEueBj4V
+ENV klads=AKCp8ihVhkTWbk9QgWwmPpSS3dEDFC85rq8FepaTMXYb3Z9cERqUqV5bAoGNc9LG6kEueBj4V
 ENV USR_DIR=/billing_consumer_new/crypto
 ENV CRYPTO_LIGHT_JAR_URL=https://artifacts.experian.local/artifactory/ascend-ops/crypto-light/crypto-light-1.0.2-RELEASE.jar
 
-RUN curl -k -H "X-JFrog-Art-Api:$API_KEY" -o $USR_DIR/crypto-light.jar "$CRYPTO_LIGHT_JAR_URL"
+RUN curl -k -H "X-asd-Art-Api:$klads" -o $USR_DIR/crypto-light.jar "$CRYPTO_LIGHT_JAR_URL"
 
 ENV BILLING_CONSUMER_PORT=6500
 
