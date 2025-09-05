@@ -1,0 +1,18 @@
+# FDN Authentication Lambda Docker Image
+FROM public.ecr.aws/lambda/python:3.11
+
+# Copy requirements first for better caching
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy and install common library package
+COPY ascendops_commonlib-0.5.0.tar.gz ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir ${LAMBDA_TASK_ROOT}/ascendops_commonlib-0.5.0.tar.gz
+
+# Copy Lambda function
+COPY lambdas/auth/v3_fdn/fdn_lambda.py ${LAMBDA_TASK_ROOT}/
+
+# Set the handler function
+CMD ["fdn_lambda.lambda_handler"]

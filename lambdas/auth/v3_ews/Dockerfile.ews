@@ -1,0 +1,30 @@
+# EWS Authentication Lambda Docker Image
+FROM public.ecr.aws/lambda/python:3.11
+
+# Copy requirements first for better caching
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy and install common library package
+COPY ascendops_commonlib-0.5.0.tar.gz ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir ${LAMBDA_TASK_ROOT}/ascendops_commonlib-0.5.0.tar.gz
+
+# Copy Lambda function
+COPY lambdas/auth/v3_ews/ews_lambda.py ${LAMBDA_TASK_ROOT}/
+
+# Set environment variables for EWS configuration
+ENV SQUID_PROXY=""
+ENV EWS_PRIVATE_KEY_PATH="ascendops_realtime/certs/ews_uat_jwks_private_key.pem"
+ENV EWS_BASE_URL="https://platform.cat.earlywarning.io"
+ENV EWS_KID="330da108617fdaa8"
+ENV EWS_AUTH_CLIENT_ID="8df0bfd9-7691-401c-9778-2311bfdff83c"
+ENV EWS_CLIENT_ID="Experian"
+ENV EWS_CLIENT_ACCT_ID="Experian"
+ENV EWS_APP="ExpandCreditInsights49A1012001"
+ENV EWS_BILLING_CLIENT_ID="JPMC"
+ENV EWS_BILLING_CLIENT_ACCT_ID="JPMC"
+
+# Set the handler function
+CMD ["ews_lambda.lambda_handler"]
